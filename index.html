@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Converter</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23000000'/%3E%3Cpath d='M12 20 h40 v28 a4 4 0 0 1 -4 4 h-32 a4 4 0 0 1 -4 -4 z' fill='none' stroke='%234F9BFF' stroke-width='3.5'/%3E%3Cpath d='M12 20 l20 16 l20 -16' fill='none' stroke='%234F9BFF' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23000000'/%3E%3Cpath d='M12 20 h40 v28 a4 4 0 0 1 -4 4 h-32 a4 4 0 0 1 -4 -4 z' fill='none' stroke='%234F9BFF' stroke-width='3.5'/%3E%3Cpath d='M12 20 l20 16 l20 -16' fill='none' stroke='%234F9BFF' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fragment+Mono:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg: #000000;
+  --panel: #0A0A0A;
+  --panel-2: #131211;
+  --line: #2B2822;
+  --line-soft: #1C1A16;
+  --text: #F3EFE6;
+  --text-dim: #9C978A;
+  --text-faint: #5E594E;
+  --accent: #4ADE9E;
+  --accent-soft: rgba(74,222,158,0.12);
+  --accent-line: rgba(74,222,158,0.40);
+  --good: #7FBF8C;
+  --good-soft: rgba(127,191,140,0.10);
+  --bad: #E07A6B;
+  --bad-soft: rgba(224,122,107,0.10);
+  --radius: 10px;
+  --mono: 'Fragment Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+*{ box-sizing: border-box; }
+
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+}
+
+.shell{
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+
+header.app-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.title-block h1{
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+
+.title-block p{
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  max-width: 46ch;
+  line-height: 1.5;
+}
+
+.badge{
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  padding: 5px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+
+.toolbar{
+  display:flex;
+  flex-wrap: wrap;
+  align-items:center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.file-btn{
+  position: relative;
+  overflow: hidden;
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+}
+.file-btn input[type="file"]{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+}
+
+button, .file-btn{
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .05s ease;
+}
+
+button:hover, .file-btn:hover{
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+button:active{ transform: translateY(1px); }
+
+button#convertButton{
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+button#convertButton:hover{
+  background: var(--accent);
+  opacity: 0.92;
+  border-color: var(--accent);
+}
+
+.spacer{ flex: 1; }
+
+.panels{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 860px){
+  .panels{ grid-template-columns: 1fr; }
+}
+
+.panel{
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.panel-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--panel-2);
+}
+
+.panel-head label{
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.count{
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+textarea{
+  width:100%;
+  height: 420px;
+  resize: vertical;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  padding: 14px;
+}
+
+textarea::placeholder{ color: var(--text-faint); }
+
+textarea#output{ background: var(--panel-2); }
+
+.status-row{
+  min-height: 20px;
+  margin: 16px 2px 0;
+}
+
+.status{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+}
+
+.status.success{
+  color: var(--good);
+  background: var(--good-soft);
+  border-color: rgba(74,222,158,0.25);
+}
+
+.status.error{
+  color: var(--bad);
+  background: var(--bad-soft);
+  border-color: rgba(255,107,107,0.25);
+}
+
+.status:empty{ display:none; }
+
+::selection{ background: var(--accent-soft); color: var(--text); }
+</style>
+
+</head>
+<body>
+
+<div class="shell">
+
+  <header class="app-head">
+    <div class="title-block">
+      <h1>Email Converter</h1>
+      <p>Paste or load a raw .eml source. Decodes encoded HTML parts, normalizes headers, and strips the MIME envelope.</p>
+    </div>
+    <span class="badge">RFC 822 / MIME</span>
+  </header>
+
+  <div class="toolbar">
+    <label class="file-btn">
+      📎 Load file
+      <input type="file" id="fileInput">
+    </label>
+    <button id="convertButton">Convert email</button>
+    <button id="copyButton">Copy output</button>
+    <button id="downloadButton">Download</button>
+    <span class="spacer"></span>
+    <button id="clearButton">Clear</button>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-head">
+        <label for="input">Source</label>
+        <div class="count" id="inputCount">0 characters</div>
+      </div>
+      <textarea id="input" placeholder="Paste raw email here&#10;(headers + MIME body)"></textarea>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <label for="output">Converted</label>
+        <div class="count" id="outputCount">0 characters</div>
+      </div>
+      <textarea id="output" readonly placeholder="Converted output will appear here"></textarea>
+    </div>
+  </div>
+
+  <div class="status-row">
+    <div class="status" id="status"></div>
+  </div>
+
+</div>
+
+<script>
+    const input = document.querySelector("#input");
+    const output = document.querySelector("#output");
+    const status = document.querySelector("#status");
+    const inputCount = document.querySelector("#inputCount");
+    const outputCount = document.querySelector("#outputCount");
+
+    function setStatus(message, type = "") {
+      status.textContent = message;
+      status.className = `status ${type}`.trim();
+    }
+
+    function updateCounts() {
+      inputCount.textContent = `${input.value.length.toLocaleString()} characters`;
+      outputCount.textContent = `${output.value.length.toLocaleString()} characters`;
+    }
+
+    function splitHeaderAndBody(raw) {
+      const match = raw.match(/\r?\n\r?\n/);
+      if (!match) {
+        return {
+          headers: raw.trimEnd(),
+          separator: "",
+          body: ""
+        };
+      }
+      if (!match) throw new Error("Email header/body separator was not found.");
+      return {
+        headers: raw.slice(0, match.index),
+        separator: match[0],
+        body: raw.slice(match.index + match[0].length)
+      };
+    }
+
+    function replaceHeader(headers, name, value) {
+      const lines = headers.split(/\r?\n/);
+      const outputLines = [];
+      let replaced = false;
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
+        const headerMatch = line.match(/^([^:\s]+)\s*:/);
+
+        if (headerMatch && headerMatch[1].toLowerCase() === name.toLowerCase()) {
+          if (!replaced) {
+            outputLines.push(`${name}: ${value}`);
+            replaced = true;
+          }
+          while (index + 1 < lines.length && /^[ \t]/.test(lines[index + 1])) index += 1;
+        } else {
+          outputLines.push(line);
+        }
+      }
+
+      if (!replaced) outputLines.push(`${name}: ${value}`);
+      return outputLines.join("\r\n");
+    }
+
+    function replaceFromEmailOnly(headers, newEmail) {
+      const lines = headers.split(/\r?\n/);
+      const outputLines = [];
+      let replaced = false;
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
+        const headerMatch = line.match(/^([^:\s]+)\s*:/);
+
+        if (headerMatch && headerMatch[1].toLowerCase() === "from" && !replaced) {
+          let fullValue = line.slice(line.indexOf(":") + 1).trim();
+          while (index + 1 < lines.length && /^[ \t]/.test(lines[index + 1])) {
+            index += 1;
+            fullValue += ` ${lines[index].trim()}`;
+          }
+
+          const updatedValue = /<[^>]*>/.test(fullValue)
+            ? fullValue.replace(/<[^>]*>/, `<${newEmail}>`)
+            : `${fullValue} <${newEmail}>`;
+
+          outputLines.push(`From: ${updatedValue}`);
+          replaced = true;
+        } else {
+          outputLines.push(line);
+        }
+      }
+
+      if (!replaced) outputLines.push(`From: <${newEmail}>`);
+      return outputLines.join("\r\n");
+    }
+
+    function decodeBase64Utf8(encoded) {
+      const clean = encoded.replace(/\s+/g, "");
+      if (!clean || !/^[A-Za-z0-9+/]*={0,2}$/.test(clean)) {
+        throw new Error("HTML part does not contain valid Base64 content.");
+      }
+
+      const binary = atob(clean);
+      const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+      return new TextDecoder("utf-8").decode(bytes);
+    }
+
+    function decodeQuotedPrintableUtf8(encoded) {
+      const bytes = [];
+      const encoder = new TextEncoder();
+
+      for (let index = 0; index < encoded.length; index += 1) {
+        const character = encoded[index];
+        const nextTwo = encoded.slice(index + 1, index + 3);
+
+        if (character === "=" && /^\r?\n/.test(encoded.slice(index + 1))) {
+          if (encoded[index + 1] === "\r") index += 2;
+          else index += 1;
+          continue;
+        }
+
+        if (character === "=" && /^[0-9A-Fa-f]{2}$/.test(nextTwo)) {
+          bytes.push(parseInt(nextTwo, 16));
+          index += 2;
+          continue;
+        }
+
+        bytes.push(...encoder.encode(character));
+      }
+
+      return new TextDecoder("utf-8").decode(new Uint8Array(bytes));
+    }
+
+    // 7bit must contain ASCII only. Numeric entities keep Unicode text and emoji readable.
+    function makeSevenBitSafe(html) {
+      return Array.from(html, character => {
+        const codePoint = character.codePointAt(0);
+        return codePoint > 127 ? `&#${codePoint};` : character;
+      }).join("");
+    }
+
+    function moveClosingStyleToEnd(body) {
+      const stylePattern = /(?:<\/style\s*>|&lt;\/style\s*&gt;|=3C\/style\s*=3E)/i;
+      const allStyleCloseTags = /(?:<\/style\s*>|&lt;\/style\s*&gt;|=3C\/style\s*=3E)/gi;
+      if (!stylePattern.test(body)) {
+        const hasHtmlDocument = /(?:<!doctype\s+html\b|<html\b|<body\b)/i.test(body);
+        if (hasHtmlDocument) {
+          return {
+            body: body.trimEnd(),
+            moved: false,
+            commented: false
+          };
+        }
+        return {
+          body: `<!--${body.trimEnd()}-->`,
+          moved: false,
+          commented: true
+        };
+      }
+      const withoutStyleCloseTags = body.replace(allStyleCloseTags, "");
+      return {
+        body: `${withoutStyleCloseTags.trimEnd()}</style>`,
+        moved: true,
+        commented: false
+      };
+    }
+
+    function processHtmlParts(body, boundary, newline) {
+      const delimiter = `--${boundary}`;
+      const parts = body.split(delimiter);
+      let decodedCount = 0;
+      let styleMoveCount = 0;
+      let commentWrapCount = 0;
+
+      for (let index = 1; index < parts.length; index += 1) {
+        let part = parts[index];
+        if (/^--[ \t]*(?:\r?\n)?$/.test(part)) continue;
+
+        const leadingNewline = part.match(/^\r?\n/)?.[0] || "";
+        const content = part.slice(leadingNewline.length);
+        const separatorMatch = content.match(/\r?\n\r?\n/);
+        if (!separatorMatch) continue;
+
+        let partHeaders = content.slice(0, separatorMatch.index);
+        let partBody = content.slice(separatorMatch.index + separatorMatch[0].length);
+
+        if (!/^Content-Type:\s*text\/html\b/im.test(partHeaders)) continue;
+
+        const isBase64 = /^Content-Transfer-Encoding:\s*base64\s*$/im.test(partHeaders);
+        const isQuotedPrintable = /^Content-Transfer-Encoding:\s*quoted-printable\s*$/im.test(partHeaders);
+        if (isBase64) {
+          partBody = makeSevenBitSafe(decodeBase64Utf8(partBody));
+          partHeaders = partHeaders.replace(
+            /^Content-Transfer-Encoding:\s*base64\s*$/im,
+            "Content-Transfer-Encoding: 7bit"
+          );
+          decodedCount += 1;
+        }
+        if (isQuotedPrintable) {
+          partBody = makeSevenBitSafe(decodeQuotedPrintableUtf8(partBody));
+          partHeaders = partHeaders.replace(
+            /^Content-Transfer-Encoding:\s*quoted-printable\s*$/im,
+            "Content-Transfer-Encoding: 7bit"
+          );
+          decodedCount += 1;
+        }
+
+        const moved = moveClosingStyleToEnd(partBody);
+        partBody = moved.body;
+        if (moved.moved) styleMoveCount += 1;
+        if (moved.commented) commentWrapCount += 1;
+
+        parts[index] = `${leadingNewline}${partHeaders}${newline}${newline}${partBody}${newline}`;
+      }
+
+      return { body: parts.join(delimiter), decodedCount, styleMoveCount, commentWrapCount };
+    }
+
+    function convertEmail(raw) {
+      if (!raw.trim()) throw new Error("Input email is empty.");
+
+      const newline = raw.includes("\r\n") ? "\r\n" : "\n";
+      const parsed = splitHeaderAndBody(raw);
+      let headers = parsed.headers;
+
+      headers = replaceHeader(headers, "Subject", "{sub}");
+      headers = replaceHeader(headers, "From", "{from} <{listid}>");
+      headers = replaceHeader(headers, "Date", "{hdt}");
+      headers = replaceHeader(headers, "To", "{to}");
+
+      const unfoldedHeaders = headers.replace(/\r?\n[ \t]+/g, " ");
+      const boundaryMatch = unfoldedHeaders.match(
+        /Content-Type:\s*multipart\/[^;\r\n]+;[\s\S]*?\bboundary\s*=\s*(?:"([^"]+)"|([^;\s]+))/i
+      );
+
+      if (!boundaryMatch) {
+        const isHtmlBody = /^Content-Type:\s*text\/html\b/im.test(unfoldedHeaders);
+        const isBase64 = /^Content-Transfer-Encoding:\s*base64\s*$/im.test(headers);
+        const isQuotedPrintable = /^Content-Transfer-Encoding:\s*quoted-printable\s*$/im.test(headers);
+        let body = parsed.body;
+        let decodedCount = 0;
+
+        if (isHtmlBody && isBase64 && body) {
+          body = makeSevenBitSafe(decodeBase64Utf8(body));
+          headers = headers.replace(
+            /^Content-Transfer-Encoding:\s*base64\s*$/im,
+            "Content-Transfer-Encoding: 7bit"
+          );
+          decodedCount = 1;
+        }
+        if (isHtmlBody && isQuotedPrintable && body) {
+          body = makeSevenBitSafe(decodeQuotedPrintableUtf8(body));
+          headers = headers.replace(
+            /^Content-Transfer-Encoding:\s*quoted-printable\s*$/im,
+            "Content-Transfer-Encoding: 7bit"
+          );
+          decodedCount = 1;
+        }
+
+        const transformed = isHtmlBody && body
+          ? moveClosingStyleToEnd(body)
+          : { body: parsed.body, moved: false, commented: false };
+
+        return {
+          result: `${headers}${newline}${newline}${transformed.body}`,
+          decodedCount,
+          styleMoveCount: transformed.moved ? 1 : 0,
+          commentWrapCount: transformed.commented ? 1 : 0,
+          boundaryRemoved: false
+        };
+      }
+
+      const boundary = boundaryMatch[1] || boundaryMatch[2];
+      const processed = processHtmlParts(parsed.body, boundary, newline);
+
+      // Remove only the final closing boundary line and trailing whitespace.
+      const escapedBoundary = boundary.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const finalBoundary = new RegExp(
+        `(?:\\r?\\n)?--${escapedBoundary}--[ \\t]*(?:\\r?\\n)*$`
+      );
+      const bodyWithoutClosingBoundary = processed.body.replace(finalBoundary, "").trimEnd();
+      const result = `${headers}${newline}${newline}${bodyWithoutClosingBoundary}`;
+
+      return {
+        result,
+        decodedCount: processed.decodedCount,
+        styleMoveCount: processed.styleMoveCount,
+        commentWrapCount: processed.commentWrapCount,
+        boundaryRemoved: true
+      };
+    }
+
+    document.querySelector("#convertButton").addEventListener("click", () => {
+      try {
+        const converted = convertEmail(input.value);
+        output.value = converted.result;
+        updateCounts();
+        const encodingMessage = converted.decodedCount
+          ? `${converted.decodedCount} encoded HTML part decoded and changed to 7bit.`
+          : "No encoded HTML part found; encoding was not changed.";
+        const commentMessage = converted.commentWrapCount
+          ? `${converted.commentWrapCount} HTML content hidden in comment tag.`
+          : "No HTML content hidden in comment tag.";
+        if (!converted.boundaryRemoved) {
+          setStatus(`MIME boundary not present; content processed normally. ${commentMessage}`, "success");
+          return;
+        }
+        if (converted.commentWrapCount) {
+          setStatus(`${encodingMessage} ${commentMessage} Final boundary removed.`, "success");
+          return;
+        }
+        setStatus(
+          `${encodingMessage} ${converted.styleMoveCount} </style> tag moved; final boundary removed.`,
+          "success"
+        );
+      } catch (error) {
+        output.value = "";
+        updateCounts();
+        setStatus(error.message, "error");
+      }
+    });
+
+    document.querySelector("#copyButton").addEventListener("click", async () => {
+      if (!output.value) return setStatus("No output to copy.", "error");
+      await navigator.clipboard.writeText(output.value);
+      setStatus("Output copied to clipboard.", "success");
+    });
+
+    document.querySelector("#downloadButton").addEventListener("click", () => {
+      if (!output.value) return setStatus("No output to download.", "error");
+      const blob = new Blob([output.value], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "converted-email.txt";
+      link.click();
+      URL.revokeObjectURL(link.href);
+      setStatus("converted-email.txt downloaded.", "success");
+    });
+
+    document.querySelector("#clearButton").addEventListener("click", () => {
+      input.value = "";
+      output.value = "";
+      updateCounts();
+      setStatus("Cleared.");
+    });
+
+    document.querySelector("#fileInput").addEventListener("change", async event => {
+      const [file] = event.target.files;
+      if (!file) return;
+      input.value = await file.text();
+      output.value = "";
+      updateCounts();
+      setStatus(`${file.name} loaded. Click Convert Email.`);
+    });
+
+    input.addEventListener("input", updateCounts);
+    updateCounts();
+</script>
+
+</body>
+</html>
